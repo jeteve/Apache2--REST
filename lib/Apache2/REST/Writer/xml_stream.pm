@@ -28,7 +28,7 @@ Getter
 
 
 sub mimeType{
-    return 'text/xml' ;
+    return 'application/xml' ; ## The framework requires this to be unique per writer type.
 }
 
 =head2 getPreambleBytes
@@ -60,12 +60,12 @@ sub getPostambleBytes{
 
 sub getNextBytes{
     my ($self , $resp) = @_;
-    my $nextChunk = $self->stream->nextChunk();
+    my $nextChunk = $resp->stream->nextChunk();
     unless( defined $nextChunk ){ return undef;}
     unless( ref $nextChunk ){
-	confess($self->stream()."->nextChunk MUST return a chunk of data as a reference, not a binary string");
+	confess($resp->stream()."->nextChunk MUST return a chunk of data as a reference, not a binary string");
     }
-    my $xmlString = XMLout($nextChunk);
+    my $xmlString = XMLout($nextChunk , RootName => 'chunk' );
     return Encode::encode_utf8($xmlString);
 }
 

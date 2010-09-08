@@ -195,6 +195,7 @@ my $_wtClasses = {
     'yaml' => 'Apache2::REST::Writer::yaml' ,
     'perl' => 'Apache2::REST::Writer::perl' ,
     'bin'  => 'Apache2::REST::Writer::bin' ,
+    'xml_stream' => 'Apache2::REST::Writer::xml_stream',
 };
 my $_MIME2wtClass = {};
 my $_isInit = 0 ;
@@ -221,6 +222,7 @@ sub doInit{
             warn "Cannot load $class: $@\n";
             next ;
         }
+	warn "Loaded writer class $class\n";
         my $dummyWriter = $class->new();
         my $mimeType = $dummyWriter->mimeType($dummyResp);
         $_MIME2wtClass->{$dummyWriter->mimeType($dummyResp)} = $key ;
@@ -305,6 +307,9 @@ sub handler{
   output:
     ## Load the writer for the given format
     my $defaultWriter = $r->dir_config('Apache2RESTWriterDefault') || 'xml' ;
+    if ($resp->stream()){
+	$defaultWriter .= '_stream';
+    }
     my $wClass = $_wtClasses->{$req->requestedFormat()} || $_wtClasses->{$defaultWriter}  ;
     eval "require $wClass;" ;
     if ( $@ ){
@@ -314,9 +319,14 @@ sub handler{
         $wClass = 'Apache2::REST::Writer::xml' ;
     }
     my $writer = $wClass->new() ;
+
+    if($writer->can('handleModPerlResponse')){
+	## Use that instead of the legacy code below. (See TODO)
+	return $writer->handleModPerlResponse($r,$resp,$retCode);
+    }
     
+    ## TODO: Refactor that so it goes in a writer specific method
     $r->content_type($writer->mimeType($resp)) ;
-    
     $resp->cleanup() ;
     my $respTxt = $writer->asBytes($resp) ;
     if ( $retCode && ( $retCode  != Apache2::Const::HTTP_OK ) ){

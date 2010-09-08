@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Carp;
 
+use Apache2::Const;
+
 =head2 new
 
 You can override this if you like but remember
@@ -79,6 +81,35 @@ $this->getPostambleBytes($response);
 sub getPostambleBytes{
     my ($self, $resp) = @_;
     confess("Please implement me in an application subclass");
+}
+
+=head2 handleModPerlResponse
+
+Handles writing this response in a mod perl request object at response time.
+
+Beware, this method switches STDOUT to binmode.
+
+=cut
+
+sub handleModPerlResponse{
+    my ($self , $r , $resp , $retCode ) = @_;
+    $r->content_type($self->mimeType($resp));
+    $resp->cleanup();
+    
+    if ( $retCode && ( $retCode  != Apache2::Const::HTTP_OK ) ){
+        $r->status($retCode);
+    }
+
+    
+    binmode STDOUT;
+    print $self->getPreambleBytes($resp);
+    while( defined ( my $nextBytes = $self->getNextBytes($resp) ) ){
+	print $nextBytes;
+    }
+    print $self->getPostambleBytes($resp);
+    
+    return Apache2::Const::OK;
+
 }
 
 1;
