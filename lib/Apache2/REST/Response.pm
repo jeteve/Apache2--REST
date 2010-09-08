@@ -39,6 +39,7 @@ sub new{
         'data' => {},
         'binMimeType' => undef ,
         'bin' => undef ,
+	'stream' => undef,
     };
     return bless $self , $class ;
 }
@@ -60,6 +61,7 @@ sub cleanup{
             delete $self->{$key} ;
         }
     }
+    
 }
 
 =head2 status
@@ -89,6 +91,15 @@ Get/Set the binary content to return in case the bin writer is used.
 =head2 binMimeType
 
 Get/Set the MIME type of the binary content.
+
+=cut
+
+=head2 stream
+
+Get/Set the L<Apache2::REST::Stream> to render this response as a stream
+of data.
+
+Setting this will trigger a '_Stream' version of writers to be used.
 
 =cut
 
