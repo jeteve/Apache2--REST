@@ -1,0 +1,31 @@
+--- #YAML:1.0
+name:               Apache2-REST
+version:            0.06
+abstract:           Micro framework for REST API implementation under apache2/mod_perl2/apreq2
+author:
+    - Jerome Eteve <jerome@eteve.net>
+license:            unknown
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Apache2::Log:       2.000001
+    Apache2::Request:   2.08
+    Class::AutoAccess:  0.02
+    Digest::MD5:        2.33
+    HTTP::Status:       1.28
+    JSON::XS:           2.2222
+    REST::Client:       118
+    Test::More:         0
+    XML::Simple:        2.14
+    YAML:               0.68
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.54
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4
