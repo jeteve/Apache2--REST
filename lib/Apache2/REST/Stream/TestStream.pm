@@ -9,14 +9,15 @@ of data.
 
 Usage:
 
-    my $stream = Apache2::REST::Stream::TestStream->new($number_of_chunks);
+    my $stream = Apache2::REST::Stream::TestStream->new($number_of_chunks, $delay_between_chunks);
 
 =cut
 
 sub new{
-    my ($class , $number_of_chunks ) = @_;
+    my ($class , $number_of_chunks, $delay ) = @_;
     my $self = {
-	'number' => $number_of_chunks
+	'number' => $number_of_chunks,
+    'delay'  => $delay
     };
     return bless $self , $class;
 }
@@ -31,7 +32,12 @@ undef at the end of the stream.
 sub nextChunk{
     my ($self) = @_;
     if($self->number() <= 0){
-	return undef;
+        return undef;
+    }
+
+    # simulate slower streams
+    if ($self->{'delay'}) {
+        sleep $self->{'delay'};
     }
     $self->number($self->number() - 1);
     return { 'chunk_message' => $self->number().' chunks left' }; 

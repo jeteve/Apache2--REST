@@ -20,7 +20,7 @@ use Apache2::REST::Conf ;
 
 use Data::Dumper ;
 
-our $VERSION = '0.06';
+our $VERSION = '0.065';
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ Apache2::REST - Micro framework for REST API implementation under apache2/mod_pe
 
 =head1 VERSION
 
-Version 0.06
+Version 0.065
 
 =head1 QUICK TUTORIAL
 
@@ -195,7 +195,9 @@ my $_wtClasses = {
     'yaml' => 'Apache2::REST::Writer::yaml' ,
     'perl' => 'Apache2::REST::Writer::perl' ,
     'bin'  => 'Apache2::REST::Writer::bin' ,
-    'xml_stream' => 'Apache2::REST::Writer::xml_stream',
+    'xml_stream'     => 'Apache2::REST::Writer::xml_stream',
+    'yaml_stream'    => 'Apache2::REST::Writer::yaml_stream' ,
+    'yaml_multipart' => 'Apache2::REST::Writer::yaml_multipart' ,
 };
 my $_MIME2wtClass = {};
 my $_isInit = 0 ;
@@ -307,10 +309,12 @@ sub handler{
   output:
     ## Load the writer for the given format
     my $defaultWriter = $r->dir_config('Apache2RESTWriterDefault') || 'xml' ;
-    if ($resp->stream()){
-	$defaultWriter .= '_stream';
-    }
     my $wClass = $_wtClasses->{$req->requestedFormat()} || $_wtClasses->{$defaultWriter}  ;
+    if ($resp->stream()){
+        $wClass .= '_stream';
+    } elsif ($resp->multipart_stream()) {
+        $wClass .= '_multipart';
+    }
     eval "require $wClass;" ;
     if ( $@ ){
         warn "Cannot load $wClass:$@\n" ;
@@ -321,8 +325,8 @@ sub handler{
     my $writer = $wClass->new() ;
 
     if($writer->can('handleModPerlResponse')){
-	## Use that instead of the legacy code below. (See TODO)
-	return $writer->handleModPerlResponse($r,$resp,$retCode);
+        ## Use that instead of the legacy code below. (See TODO)
+        return $writer->handleModPerlResponse($r,$resp,$retCode);
     }
     
     ## TODO: Refactor that so it goes in a writer specific method
