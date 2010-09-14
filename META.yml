@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Apache2-REST
-version:            0.065
+version:            0.07_01
 abstract:           Micro framework for REST API implementation under apache2/mod_perl2/apreq2
 author:
     - Jerome Eteve <jerome@eteve.net>

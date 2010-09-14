@@ -20,7 +20,7 @@ use Apache2::REST::Conf ;
 
 use Data::Dumper ;
 
-our $VERSION = '0.065';
+our $VERSION = '0.07_01';
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ Apache2::REST - Micro framework for REST API implementation under apache2/mod_pe
 
 =head1 VERSION
 
-Version 0.065
+Version 0.07_01
 
 =head1 QUICK TUTORIAL
 
@@ -39,7 +39,7 @@ This module will handle the root resource of your REST API.
    package MyApp::REST::API ;
    use warnings ;
    use strict ;
-    
+
    # Implement the GET HTTP method.
    sub GET{
        my ($self, $request, $response) = @_ ;
@@ -114,15 +114,15 @@ Valid values are:
     'response' (outputs error only in response)
     'server'   (outputs error only in server logs. The response contains
                 an error reference for easy retrieval in the error log file)
-                
 
-=head3 Apache2RESTHandlerRootClass  
+
+=head3 Apache2RESTHandlerRootClass
 
 root class of your API implementation. If ommitted, this module will feature the demo implementation
 Accessible at C<http://localhost/test/> (providing you installed this at the root of the server)
 
 Example:
-    
+
     PerlSetVar Apache2RESTHandlerRootClass "MyApp::REST::API"
 
 =head3 Apache2RESTParamEncoding
@@ -131,7 +131,7 @@ Encoding of the parameters sent to this API. Default is UTF-8.
 Must be a value compatible with L<Encode>
 
 Example:
-    
+
     PerlSetVar Apache2RESTParamEncoding "UTF-8"
 
 =head3 Apache2RESTAppAuth
@@ -140,7 +140,7 @@ Specifies the module to use for application authentication.
 See L<Apache2::REST::AppAuth> for API.
 
 Example:
-    
+
     PerlSetVar Apache2RESTAppAuth "MyApp::REST::AppAuth"
 
 =head3 Apache2RESTWriterSelectMethod
@@ -158,7 +158,7 @@ Example:
     
     When using 'param' (default) ask for json format like this: http://localhost/test/?fmt=json
     When using 'extension' : http://localhost/test.json
-    
+
 =head3 Apache2RESTWriterDefault
 
 Sets the default writer. If ommitted, the default is C<xml>. Available writers are C<xml>, C<json>, C<yaml>, C<perl>, C<bin>
@@ -205,7 +205,7 @@ my $_isInit = 0 ;
 sub doInit{
     my $r = shift ;
     my $req = shift ;
-    
+
     ## Initialize Apache2RESTWriterRegistry
     my %wt = $r->dir_config->get('Apache2RESTWriterRegistry');
     unless( keys %wt ){
@@ -214,7 +214,7 @@ sub doInit{
     foreach my $key ( keys %wt ){
         $_wtClasses->{$key} = $wt{$key} ;
     }
-    
+
     ## Register all the mimetypes
     my $dummyResp = Apache2::REST::Response->new() ;
     foreach my $key ( keys %$_wtClasses ){
@@ -239,12 +239,12 @@ sub handler{
     if ( $paramEncoding  ){
         $req->paramEncoding($paramEncoding) ;
     }
-    
+
     unless( $_isInit ){
         doInit($r, $req) ;
         $_isInit = 1 ;
     }
-    
+
     ## Response object
     my $resp = Apache2::REST::Response->new() ;
     my $retCode = undef ;
@@ -253,19 +253,19 @@ sub handler{
     if ( my $base = $r->dir_config('Apache2RESTAPIBase')){
         $uri =~ s/^\Q$base\E// ;
     }
-    
+
     ## Get the requested format
     my $wtMethod = $r->dir_config('Apache2RESTWriterSelectMethod') || 'param' ;
     my $format = '' ;
     if ( $wtMethod eq 'param' ){ $format = $req->param('fmt') || '' ; }
     if ( $wtMethod eq 'extension'){ ( $format ) = ( $uri =~ /\.(\w+)$/ ) ; $uri =~ s/\.\w+$// ;  $format ||= '' ;}
     if ( $wtMethod eq 'header' ){ $format = $_MIME2wtClass->{$r->headers_in->{'Accept'}}; }
-        
-    
+
+
     # Let Apache2::REST::Request know about requested_format
     $req->requestedFormat($format) ;
-    
-    
+
+
     ## Application level authorisation part
     my $appAuth = $r->dir_config('Apache2RESTAppAuth') || '' ;
     if ( $appAuth ){
@@ -284,28 +284,28 @@ sub handler{
             goto output ;
         }
     }
-    
-    
+
+
     my $handlerRootClass = $r->dir_config('Apache2RESTHandlerRootClass') || 'Apache2::REST::Handler' ;
-    
+
     eval "require $handlerRootClass;";
     if ( $@ ){
         die "Cannot find root class $handlerRootClass (from conf Apache2RESTHandlerRootClass): $@\n" ;
     }
-    
+
     my $topHandler = $handlerRootClass->new() ;
     my $conf = Apache2::REST::Conf->new() ;
     $conf->Apache2RESTErrorOutput($r->dir_config('Apache2RESTErrorOutput') || 'both' );
     $topHandler->conf($conf);
-    
+
     my @stack = split('\/+' , $uri);
     # Protect against empty fragments.
     @stack = grep { length($_)>0 } @stack ;
-    
-    
-    
+
+
+
     $retCode = $topHandler->handle(\@stack , $req , $resp ) ;
-    
+
   output:
     ## Load the writer for the given format
     my $defaultWriter = $r->dir_config('Apache2RESTWriterDefault') || 'xml' ;
@@ -328,7 +328,7 @@ sub handler{
         ## Use that instead of the legacy code below. (See TODO)
         return $writer->handleModPerlResponse($r,$resp,$retCode);
     }
-    
+
     ## TODO: Refactor that so it goes in a writer specific method
     $r->content_type($writer->mimeType($resp)) ;
     $resp->cleanup() ;
@@ -341,17 +341,19 @@ sub handler{
     }else{
         $r->err_headers_out()->add('Content-length' , length($respTxt)) ;
     }
-    
+
     binmode STDOUT ;
     print $respTxt  ;
     return  Apache2::Const::OK ;
-    
+
 }
 
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Jerome Eteve, C<< <jerome at eteve.net> >>
+
+Scott Thoman, C<< <scott dot thoman at steeleye dot com> >>
 
 =head1 BUGS
 
@@ -391,7 +393,7 @@ L<http://search.cpan.org/dist/Apache2-REST>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Careerjet Ltd, all rights reserved.
+Copyright 2009-2010 The authors, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

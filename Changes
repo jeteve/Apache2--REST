@@ -1,5 +1,9 @@
 Revision history for Apache2-REST
 
+0.07_01
+        Added support for streaming and multipart responses.    
+        Added Scott Thoman in authors.
+
 0.06    
         Added options for error output.
         Log errors server side by using log_error (and Apache2::Log)
