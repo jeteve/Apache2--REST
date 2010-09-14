@@ -5,11 +5,14 @@ use XML::Simple ;
 use base qw/Apache2::REST::WriterStream/;
 
 use Data::Dumper ;
+
 =head1 NAME
 
-Apache2::REST::Writer::xml - Apache2::REST::Response Writer for xml
+Apache2::REST::Writer::xml_stream - Apache2::REST::Response Writer for streaming xml
 
 =cut
+
+=head1 METHODS
 
 =head2 new
 
@@ -25,7 +28,6 @@ sub new{
 Getter
 
 =cut
-
 
 sub mimeType{
     return 'application/xml' ; ## The framework requires this to be unique per writer type.

@@ -5,6 +5,14 @@ use Carp;
 
 use Apache2::Const;
 
+=head1 NAME
+
+Apache2::REST::WriterStream - A base class for writing a response as a stream
+
+=cut
+
+=head1 METHODS
+
 =head2 new
 
 You can override this if you like but remember
@@ -103,11 +111,13 @@ sub handleModPerlResponse{
     
     binmode STDOUT;
     print $self->getPreambleBytes($resp);
+    $r->rflush();
     while( defined ( my $nextBytes = $self->getNextBytes($resp) ) ){
 	print $nextBytes;
+	$r->rflush();
     }
     print $self->getPostambleBytes($resp);
-    
+    $r->rflush();
     return Apache2::Const::OK;
 
 }
