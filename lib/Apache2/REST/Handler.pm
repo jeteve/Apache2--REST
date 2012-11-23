@@ -134,7 +134,15 @@ sub buildNext{
     my ( $self , $frag , $req ) = @_ ;
     ## default implementation
     
+    # protect against bad chars and potential remote command exec.
+    # if($frag !~ /^[a-zA-Z0-9_\.\/\-@]+$/){ # stronger, could be used in specific cases when subclassing
+    if($frag =~ /;/){
+        warn ("unsafe characters in class name:($frag)"); 
+        return undef;
+    }
+    
     my $newC = $self->class().'::'.$frag ;
+    # might be safer as a try / catch using try::tiny?
     eval "require $newC;";
     if ( $@ ){
         warn "Class $newC not found: $@\n" ;
