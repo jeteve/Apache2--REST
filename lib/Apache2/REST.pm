@@ -224,7 +224,7 @@ sub doInit{
             warn "Cannot load $class: $@\n";
             next ;
         }
-	warn "Loaded writer class $class\n";
+	#warn "Loaded writer class $class\n";
         my $dummyWriter = $class->new();
         my $mimeType = $dummyWriter->mimeType($dummyResp);
         $_MIME2wtClass->{$dummyWriter->mimeType($dummyResp)} = $key ;
